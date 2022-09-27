@@ -1,0 +1,54 @@
+#include <AP_Common.h>
+#include <AP_Math.h>
+#include <AP_Param.h>
+#include <AP_Progmem.h>
+#include <AP_HAL.h>
+#include <AP_HAL_AVR.h>
+#include <AP_ADC.h>
+#include <AP_InertialSensor.h>
+
+const AP_HAL :: HAL & hal = AP_HAL_AVR_APM2;
+
+AP_InertialSensor_MPU6000 ins ;
+
+void setup()
+{
+  hal.console -> println("AP_InertialSensor startup...");
+  ins.init(AP_InertialSensor::COLD_START , AP_InertialSensor::RATE_100HZ,NULL);
+  hal.console ->println("\n Complete.Reading:");
+  hal.console ->print("\t accel x =");     hal.console -> print("\t accel y =");     hal.console -> print("\t accel z ="); 
+  hal.console -> print("\t p = "); hal.console -> print("\t q = "); hal.console -> print("\t r = \n");
+  run_test();
+}
+
+
+void run_test()
+{
+  Vector3f accel;
+  Vector3f gyro;
+  while(!hal.console -> available())
+  {
+    while(ins.num_samples_available()==0);
+    ins.update();
+    accel = ins.get_accel();
+    gyro = ins.get_gyro();
+    if (abs(gyro.x)<0.1){
+      gyro.x=0;
+    }
+        if (abs(gyro.y)<0.1){
+      gyro.y=0;
+    }
+        if (abs(gyro.z)<0.1){
+      gyro.z=0;
+    }
+
+    hal.console ->print(-1*accel.x); hal.console -> print("\t"); hal.console ->print(-1*accel.y); hal.console -> print("\t"); hal.console ->print(accel.z); hal.console -> print("\t");
+    hal.console ->print(gyro.x); hal.console -> print("\t"); hal.console -> print(gyro.y); hal.console -> print("\t"); hal.console -> print(gyro.z); hal.console -> print("\n");
+  }
+}
+
+void loop()
+{
+}
+
+AP_HAL_MAIN();
