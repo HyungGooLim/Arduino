@@ -1,0 +1,44 @@
+#include <AP_Common.h>
+#include <AP_Math.h>
+#include <AP_Param.h>
+#include <AP_Progmem.h>
+#include <AP_HAL.h>
+#include <AP_HAL_AVR.h>
+#include <AP_ADC.h>
+#include <AP_InertialSensor.h>
+
+
+const AP_HAL :: HAL & hal = AP_HAL_AVR_APM2;
+AP_InertialSensor_MPU6000 ins ;
+Vector3f accel;
+Vector3f gyro;
+float Pitch=0;
+float Roll=0;
+float Yaw=0;
+
+
+void setup()
+{
+  hal.console -> println("AP_InertialSensor startup...");
+  ins.init(AP_InertialSensor::COLD_START , AP_InertialSensor::RATE_100HZ,NULL);
+  hal.console ->println("\n Complete.Reading:");
+  hal.console -> print("Roll:\t\t");     hal.console -> print("Pitch:\t\t"); hal.console -> print("Yaw:\n");
+}
+
+void loop()
+{
+
+
+    ins.update();
+    accel = ins.get_accel();
+    gyro = ins.get_gyro();
+    Roll = Roll + gyro.x*0.01;
+    Pitch = Pitch + gyro.y*0.01;
+    Yaw = Yaw + gyro.z*0.01;
+    
+    hal.console ->print(ToDeg(Roll));      hal.console -> print("\t\t");  hal.console ->print(ToDeg(Pitch)); hal.console -> print("\t\t");  hal.console ->print(ToDeg(Yaw)); 
+    hal.console -> print("\n");
+    
+}
+
+AP_HAL_MAIN();
