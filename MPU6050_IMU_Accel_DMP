@@ -1,0 +1,51 @@
+#include <AP_Common.h>
+#include <AP_Math.h>
+#include <AP_Param.h>
+#include <AP_Progmem.h>
+#include <AP_HAL.h>
+#include <AP_HAL_AVR.h>
+#include <AP_ADC.h>
+#include <AP_InertialSensor.h>
+
+const AP_HAL :: HAL & hal = AP_HAL_AVR_APM2;
+
+AP_InertialSensor_MPU6000 ins ;
+
+float roll, pitch, yaw;
+
+void setup()
+{
+  hal.console -> println("AP_InertialSensor startup...");
+  ins.init(AP_InertialSensor::COLD_START , AP_InertialSensor::RATE_100HZ,NULL);
+  hal.console ->println("\n Complete.Reading:");
+  hal.scheduler -> suspend_timer_procs();
+  ins.dmp_init();
+  ins.set_accel_offsets(Vector3f(-0.04457,  0.13975, 0.35331 ));
+  ins.push_accel_offsets_to_dmp();
+  hal.scheduler -> resume_timer_procs();
+  hal.console ->print("accel.x = \t");     hal.console -> print("accel.y = \t");     hal.console -> print("accel.z = \t");
+  hal.console ->print("roll = \t");    hal.console ->print("pitch = \t");    hal.console ->print("yaw = \n");
+  run_test();
+}
+
+
+void run_test()
+{
+  Vector3f accel;
+  Vector3f gyro;
+  while(!hal.console -> available())
+  {
+    while(ins.num_samples_available()==0);
+    ins.update();
+    ins.quaternion.to_euler(&roll, &pitch , &yaw);
+    accel = ins.get_accel();
+    hal.console ->print(accel.x); hal.console ->print("\t\t ");  hal.console ->print(accel.y); hal.console ->print("\t\t "); hal.console ->print(accel.z); hal.console ->print("\t\t");
+    hal.console ->print(ToDeg(roll)); hal.console ->print("\t\t "); hal.console ->print(ToDeg(pitch)); hal.console ->print("\t\t "); hal.console ->print(ToDeg(yaw)); hal.console ->print("\n ");
+  }
+}
+
+void loop()
+{
+}
+
+AP_HAL_MAIN();
